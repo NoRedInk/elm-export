@@ -1,62 +1,101 @@
-name:                elm-export
-version:             0.6.0.1
-synopsis:            A library to generate Elm types from Haskell source.
-description:         Generate Elm source code automatically from Haskell types. Using GHC.Generics, we can automatically derive Elm type declarations, and Aeson-compatible JSON decoders & encoders.
-homepage:            http://github.com/krisajenkins/elm-export
-stability:           alpha
-license:             OtherLicense
-license-file:        LICENSE.txt
-author:              Kris Jenkins
-maintainer:          kris.jenkins@clearercode.com
-copyright:           2015-2017 Kris Jenkins
-category:            Web
-build-type:          Simple
-extra-source-files:  test/*.elm
-cabal-version:       >=1.10
+-- This file has been generated from package.yaml by hpack version 0.17.1.
+--
+-- see: https://github.com/sol/hpack
 
-library
-  hs-source-dirs:      src
-  exposed-modules:     Elm
-  build-depends:       base >= 4.7 && < 5
-                     , bytestring
-                     , containers
-                     , directory
-                     , formatting
-                     , mtl
-                     , servant
-                     , text
-                     , time
-                     , wl-pprint-text
-  default-language:    Haskell2010
-  ghc-options:         -Wall
-  other-modules: Elm.Type
-               , Elm.Common
-               , Elm.Decoder
-               , Elm.Encoder
-               , Elm.File
-               , Elm.Record
+name:           elm-export
+version:        0.6.0.1
+synopsis:       A library to generate Elm types from Haskell source.
+description:    Generate Elm source code automatically from Haskell types. Using GHC.Generics, we can automatically derive Elm type declarations, and Aeson-compatible JSON decoders & encoders.
+category:       Web
+stability:      alpha
+homepage:       http://github.com/krisajenkins/elm-export
+bug-reports:    https://github.com/krisajenkins/elm-export/issues
+author:         Kris Jenkins
+maintainer:     kris.jenkins@clearercode.com
+copyright:      2015-2017 Kris Jenkins
+license:        OtherLicense
+license-file:   LICENSE.txt
+build-type:     Simple
+cabal-version:  >= 1.10
 
-test-suite elm-export-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  other-modules:       ExportSpec
-                     , TypesSpec
-  build-depends:       Diff
-                     , HUnit
-                     , QuickCheck
-                     , base
-                     , bytestring
-                     , containers
-                     , elm-export
-                     , hspec
-                     , hspec-core
-                     , quickcheck-instances
-                     , text
-                     , time
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
-  default-language:    Haskell2010
+extra-source-files:
+    test/CommentDecoder.elm
+    test/CommentDecoderWithOptions.elm
+    test/CommentEncoder.elm
+    test/CommentEncoderWithOptions.elm
+    test/CommentType.elm
+    test/CommentTypeWithOptions.elm
+    test/FavoritePlacesType.elm
+    test/MonstrosityDecoder.elm
+    test/MonstrosityEncoder.elm
+    test/MonstrosityType.elm
+    test/PositionDecoder.elm
+    test/PositionEncoder.elm
+    test/PositionType.elm
+    test/PostDecoder.elm
+    test/PostDecoderWithOptions.elm
+    test/PostEncoder.elm
+    test/PostEncoderWithOptions.elm
+    test/PostType.elm
+    test/PostTypeWithOptions.elm
+    test/TimingDecoder.elm
+    test/TimingEncoder.elm
+    test/TimingType.elm
+    test/UselessDecoder.elm
+    test/UselessType.elm
 
 source-repository head
-  type:     git
+  type: git
   location: https://github.com/krisajenkins/elm-export
+
+library
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      base
+    , bytestring
+    , containers
+    , servant
+    , text
+    , time
+    , directory
+    , formatting
+    , mtl
+    , wl-pprint-text
+  exposed-modules:
+      Elm
+  other-modules:
+      Elm.Common
+      Elm.Decoder
+      Elm.Encoder
+      Elm.File
+      Elm.Record
+      Elm.Type
+      Paths_elm_export
+  default-language: Haskell2010
+
+test-suite elm-export-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base
+    , bytestring
+    , containers
+    , servant
+    , text
+    , time
+    , Diff
+    , HUnit
+    , QuickCheck
+    , elm-export
+    , hspec
+    , hspec-core
+    , quickcheck-instances
+  other-modules:
+      ExportSpec
+      TypesSpec
+  default-language: Haskell2010
