@@ -1,22 +1,22 @@
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Elm.Type where
 
-import           Data.Int     (Int16, Int32, Int64, Int8)
-import           Data.IntMap
-import           Data.Map
-import           Data.Proxy
-import           Data.Text
-import           Data.Time
-import           GHC.Generics
-import           Prelude
-import           Servant.API  (Headers(getResponse))
+import Data.Int (Int16, Int32, Int64, Int8)
+import Data.IntMap
+import Data.Map
+import Data.Proxy
+import Data.Text
+import Data.Time
+import GHC.Generics
+import Prelude
+import Servant.API (Headers(getResponse))
 
 data ElmDatatype
   = ElmDatatype Text
@@ -101,11 +101,10 @@ instance (GenericElmConstructor f, GenericElmConstructor g) =>
 class GenericElmValue f where
   genericToElmValue :: f a -> ElmValue
 
-instance (Selector s, GenericElmValue a) =>
-         GenericElmValue (S1 s a) where
+instance (Selector s, GenericElmValue a) => GenericElmValue (S1 s a) where
   genericToElmValue selector =
     case selName selector of
-      ""   -> genericToElmValue (undefined :: a p)
+      "" -> genericToElmValue (undefined :: a p)
       name -> ElmField (pack name) (genericToElmValue (undefined :: a p))
 
 instance (GenericElmValue f, GenericElmValue g) =>
@@ -118,19 +117,16 @@ instance (GenericElmValue f, GenericElmValue g) =>
 instance GenericElmValue U1 where
   genericToElmValue _ = ElmEmpty
 
-instance ElmType a =>
-         GenericElmValue (Rec0 a) where
+instance ElmType a => GenericElmValue (Rec0 a) where
   genericToElmValue _ =
     case toElmType (Proxy :: Proxy a) of
       ElmPrimitive primitive -> ElmPrimitiveRef primitive
-      ElmDatatype name _     -> ElmRef name
+      ElmDatatype name _ -> ElmRef name
 
-instance ElmType a =>
-         ElmType [a] where
+instance ElmType a => ElmType [a] where
   toElmType _ = ElmPrimitive (EList (toElmType (Proxy :: Proxy a)))
 
-instance ElmType a =>
-         ElmType (Maybe a) where
+instance ElmType a => ElmType (Maybe a) where
   toElmType _ = ElmPrimitive (EMaybe (toElmType (Proxy :: Proxy a)))
 
 instance ElmType () where
@@ -163,30 +159,29 @@ instance ElmType Int32 where
 instance ElmType Int64 where
   toElmType _ = ElmPrimitive EInt
 
-instance (ElmType a, ElmType b) =>
-         ElmType (a, b) where
+instance (ElmType a, ElmType b) => ElmType (a, b) where
   toElmType _ =
     ElmPrimitive $
     ETuple2 (toElmType (Proxy :: Proxy a)) (toElmType (Proxy :: Proxy b))
 
-instance (ElmType a) =>
-         ElmType (Proxy a) where
+instance (ElmType a) => ElmType (Proxy a) where
   toElmType _ = toElmType (undefined :: a)
 
-instance (HasElmComparable k, ElmType v) =>
-         ElmType (Map k v) where
+instance (HasElmComparable k, ElmType v) => ElmType (Map k v) where
   toElmType _ =
     ElmPrimitive $
     EDict (toElmComparable (undefined :: k)) (toElmType (Proxy :: Proxy v))
 
-instance (ElmType v) =>
-         ElmType (IntMap v) where
+instance (ElmType v) => ElmType (IntMap v) where
   toElmType _ = ElmPrimitive $ EDict EInt (toElmType (Proxy :: Proxy v))
 
 class HasElmComparable a where
   toElmComparable :: a -> ElmPrimitive
 
 instance HasElmComparable String where
+  toElmComparable _ = EString
+
+instance HasElmComparable Text where
   toElmComparable _ = EString
 
 instance ElmType Int where
@@ -199,6 +194,5 @@ instance ElmType Bool where
   toElmType _ = ElmPrimitive EBool
 
 -- We define this instance here because it is an orphan otherwise.
-
 instance ElmType a => ElmType (Headers headers a) where
-   toElmType = toElmType . getResponse
+  toElmType = toElmType . getResponse
