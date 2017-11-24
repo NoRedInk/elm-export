@@ -26,6 +26,11 @@ extra-source-files:
     test/CommentType.elm
     test/CommentTypeWithOptions.elm
     test/FavoritePlacesType.elm
+    test/MonstrosityDecoder.elm
+    test/MonstrosityEncoder.elm
+    test/MonstrosityType.elm
+    test/PositionDecoder.elm
+    test/PositionEncoder.elm
     test/PositionType.elm
     test/PostDecoder.elm
     test/PostDecoderWithOptions.elm
@@ -33,7 +38,10 @@ extra-source-files:
     test/PostEncoderWithOptions.elm
     test/PostType.elm
     test/PostTypeWithOptions.elm
+    test/TimingDecoder.elm
+    test/TimingEncoder.elm
     test/TimingType.elm
+    test/UselessDecoder.elm
     test/UselessType.elm
 
 source-repository head

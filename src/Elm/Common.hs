@@ -20,9 +20,7 @@ defaultOptions = Options {fieldLabelModifier = id}
 cr :: Format r r
 cr = now "\n"
 
-mintercalate
-  :: Monoid m
-  => m -> [m] -> m
+mintercalate :: Monoid m => m -> [m] -> m
 mintercalate _ [] = mempty
 mintercalate _ [x] = x
 mintercalate seperator (x:xs) = x <> seperator <> mintercalate seperator xs
@@ -36,10 +34,23 @@ stext = text . LT.fromStrict
 spaceparens :: Doc -> Doc
 spaceparens doc = "(" <+> doc <+> ")"
 
+-- | Parentheses of which the right parenthesis exists on a new line
+newlineparens :: Doc -> Doc
+newlineparens doc = "(" <> doc <$$> ")"
+
+-- | An empty line, regardless of current indentation
+emptyline :: Doc
+emptyline = nest minBound linebreak
+
+-- | Like <$$>, but with an empty line in between
+(<$+$>) :: Doc -> Doc -> Doc
+l <$+$> r = l <> emptyline <$$> r
+
 --
-type RenderM = RWS Options (Set Text -- The set of required imports
-                            , [Text] -- Generated declarations
-                            ) ()
+type RenderM
+   = RWS Options ( Set Text -- The set of required imports
+                 , [Text] -- Generated declarations
+                  ) ()
 
 {-| Add an import to the set.
 -}
@@ -52,3 +63,9 @@ declarations.
 collectDeclaration :: RenderM Doc -> RenderM ()
 collectDeclaration =
   mapRWS (\(defn, (), (imports, _)) -> ((), (), (imports, [pprinter defn])))
+
+squarebracks :: Doc -> Doc
+squarebracks doc = "[" <+> doc <+> "]"
+
+pair :: Doc -> Doc -> Doc
+pair l r = spaceparens $ l <> comma <+> r
