@@ -79,7 +79,7 @@ library
     , directory
     , formatting
     , mtl
-    , servant
+    , servant <0.19
     , text
     , time
     , wl-pprint-text
