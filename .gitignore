@@ -1,7 +1,10 @@
-/elm-export.cabal
 /.stack-work/
 /TAGS
 /test/elm-package.json
 /test/elm-stuff
 /.ghci
 /.shake
+
+# Devenv
+.devenv*
+devenv.local.nix
