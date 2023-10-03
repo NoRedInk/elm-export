@@ -8,3 +8,4 @@ type Monstrosity
     | Dicts (Dict (Int) (())) (Dict (Float) (Float))
     | SortDicts (Sort.Dict.Dict (Id) (String)) (Sort.Dict.Dict (School) (())) (Sort.Dict.Dict (Color) (())) (Dict (Int) (String))
     | SortSet (Sort.Set.Set (School)) (Set (Int))
+    | NonEmptyList (Nonempty (String))

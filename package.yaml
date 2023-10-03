@@ -36,6 +36,7 @@ library:
   - servant
   - wl-pprint-text
   - generic-lens
+  - semigroups
 
 tests:
   elm-export-test:

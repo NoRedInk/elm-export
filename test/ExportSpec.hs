@@ -11,6 +11,7 @@ module ExportSpec where
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson
 import qualified Data.Algorithm.Diff as Diff
+import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Algorithm.DiffOutput as DiffOutput
 import Data.Char
 import Data.Int
@@ -99,6 +100,7 @@ data Monstrosity
   | Dicts (Map Int64 ()) (Map Float Float)
   | SortDicts (Map Id Text) (Map School ()) (Map Color ()) (Map AnotherId Text)
   | SortSet (Set School) (Set AnotherId)
+  | NonEmptyList (NonEmpty String)
   deriving (Generic, ElmType)
 
 newtype Useless

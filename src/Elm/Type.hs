@@ -12,6 +12,7 @@ module Elm.Type where
 import qualified Data.Aeson as Aeson
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.IntMap
+import Data.List.NonEmpty (NonEmpty)
 import Data.Map
 import Data.Proxy
 import Data.Set (Set)
@@ -44,6 +45,7 @@ data ElmPrimitive
   | EUnit
   | EJsonValue
   | EList ElmDatatype
+  | ENonEmpty ElmDatatype
   | EMaybe ElmDatatype
   | ETuple2
       ElmDatatype
@@ -170,6 +172,12 @@ instance
   ElmType [a]
   where
   toElmType _ = ElmPrimitive (EList (toElmType (Proxy :: Proxy a)))
+
+instance
+  (ElmType a) =>
+  ElmType (NonEmpty a)
+  where
+  toElmType _ = ElmPrimitive (ENonEmpty (toElmType (Proxy :: Proxy a)))
 
 instance
   (ElmType a) =>

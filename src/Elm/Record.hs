@@ -80,6 +80,9 @@ instance HasTypeRef ElmPrimitive where
   renderRef (EList datatype) = do
     dt <- renderRef datatype
     return $ "List" <+> parens dt
+  renderRef (ENonEmpty datatype) = do
+    dt <- renderRef datatype
+    return $ parens ("Nonempty" <+> parens dt)
   renderRef (ETuple2 x y) = do
     dx <- renderRef x
     dy <- renderRef y

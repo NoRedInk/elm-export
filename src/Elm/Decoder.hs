@@ -140,6 +140,9 @@ instance HasDecoderRef ElmPrimitive where
   renderRef (EList datatype) = do
     dt <- renderRef datatype
     return . parens $ "list" <+> dt
+  renderRef (ENonEmpty datatype) = do
+    dt <- renderRef datatype
+    return . parens $ "List.Nonempty.Extra.encoder" <+> dt
   renderRef (EDict EString value) = do
     require "Dict"
     d <- renderRef value

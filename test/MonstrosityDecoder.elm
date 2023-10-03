@@ -73,6 +73,10 @@ decodeMonstrosity =
                                                              map (Sorter.Set.fromList sorter) (list decodeSchool)))
                             |> required "contents" (index 1 (map Set.fromList (list int)))
 
+                    "NonEmptyList" ->
+                        succeed NonEmptyList
+                            |> required "contents" (List.Nonempty.Extra.encoder string)
+
                     _ ->
                         fail "Constructor not matched"
             )

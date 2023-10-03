@@ -146,6 +146,9 @@ instance HasEncoderRef ElmPrimitive where
   renderRef level (EList datatype) = do
     dd <- renderRef level datatype
     return . parens $ "Json.Encode.list" <+> dd
+  renderRef level (ENonEmpty datatype) = do
+    dd <- renderRef level datatype
+    return . parens $ "List.Nonempty.Extra.encoder" <+> dd
   renderRef level (EMaybe datatype) = do
     dd <- renderRef level datatype
     return . parens $ "Maybe.withDefault Json.Encode.null << Maybe.map" <+> dd
