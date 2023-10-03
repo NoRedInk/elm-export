@@ -2,6 +2,7 @@ module MonstrosityDecoder exposing (..)
 
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
+import List.Nonempty.Extra
 import MonstrosityType exposing (..)
 
 

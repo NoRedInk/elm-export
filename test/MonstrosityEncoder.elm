@@ -1,6 +1,7 @@
 module MonstrosityEncoder exposing (..)
 
 import Json.Encode
+import List.Nonempty.Extra
 import MonstrosityType exposing (..)
 
 

@@ -205,7 +205,7 @@ toElmTypeSpec =
         "test/TimingType.elm"
     it "toElmTypeSource Monstrosity" $
       shouldMatchTypeSource
-        (unlines ["module MonstrosityType exposing (..)", "", "", "%s"])
+        (unlines ["module MonstrosityType exposing (..)", "", "import List.Nonempty exposing (Nonempty)", "", "", "%s"])
         defaultOptions
         (Proxy :: Proxy Monstrosity)
         "test/MonstrosityType.elm"
@@ -413,6 +413,7 @@ toElmDecoderSpec =
               "",
               "import Json.Decode exposing (..)",
               "import Json.Decode.Pipeline exposing (..)",
+              "import List.Nonempty.Extra",
               "import MonstrosityType exposing (..)",
               "",
               "",
@@ -665,6 +666,7 @@ toElmEncoderSpec =
             [ "module MonstrosityEncoder exposing (..)",
               "",
               "import Json.Encode",
+              "import List.Nonempty.Extra",
               "import MonstrosityType exposing (..)",
               "",
               "",

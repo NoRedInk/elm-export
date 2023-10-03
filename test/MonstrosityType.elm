@@ -1,5 +1,7 @@
 module MonstrosityType exposing (..)
 
+import List.Nonempty exposing (Nonempty)
+
 
 type Monstrosity
     = NotSpecial
