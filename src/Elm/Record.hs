@@ -140,7 +140,7 @@ toElmTypeRefWith ::
   a ->
   T.Text
 toElmTypeRefWith options x =
-  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ()
+  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ""
 
 toElmTypeRef ::
   (ElmType a) =>
@@ -154,7 +154,7 @@ toElmTypeSourceWith ::
   a ->
   T.Text
 toElmTypeSourceWith options x =
-  pprinter . fst $ evalRWS (render (toElmType x)) options ()
+  pprinter . fst $ evalRWS (render (toElmType x)) options ""
 
 toElmSorterSource :: (ElmType a, HasElmSorter a) => Proxy a -> T.Text
 toElmSorterSource p =

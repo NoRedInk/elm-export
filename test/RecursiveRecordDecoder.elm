@@ -8,5 +8,5 @@ import Json.Decode.Pipeline exposing (..)
 decodeRecursiveRecord : Decoder RecursiveRecord
 decodeRecursiveRecord =
     succeed (\rec otherField -> RecursiveRecord {rec = rec, otherField = otherField})
-        |> required "rec" (nullable decodeRecursiveRecord)
+        |> required "rec" (nullable (lazy (\() -> decodeRecursiveRecord)))
         |> required "otherField" string

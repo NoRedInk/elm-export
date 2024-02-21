@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -16,7 +15,6 @@ where
 
 import Control.Monad.RWS
 import qualified Data.Text as T
-import Debug.Trace (trace)
 import Elm.Common
 import qualified Elm.Sorter as Sorter
 import Elm.Type
@@ -31,6 +29,7 @@ class HasDecoderRef a where
 instance HasDecoder ElmDatatype where
   render d@(ElmDatatype name constructor) = do
     fnName <- renderRef d
+    put (displayTStrict $ renderCompact fnName)
     ctor <- render constructor
     return $
       (fnName <+> ": Decoder" <+> stext name)
@@ -39,7 +38,12 @@ instance HasDecoder ElmDatatype where
   render (CreatedInElm _) = pure $ stext ""
 
 instance HasDecoderRef ElmDatatype where
-  renderRef (ElmDatatype name _) = pure $ "decode" <> stext name
+  renderRef (ElmDatatype name _) = do
+    let decoderFunctionName = "decode" <> name
+    topFunctionName <- get
+    if topFunctionName == decoderFunctionName
+      then pure ("(lazy (\\() -> " <> stext topFunctionName <> "))")
+      else pure $ stext decoderFunctionName
   renderRef (ElmPrimitive primitive) = renderRef primitive
   renderRef (CreatedInElm elmRefData) = pure $ stext (decoderFunction elmRefData)
 
@@ -53,7 +57,6 @@ instance HasDecoder ElmConstructor where
     dv <- render value
     return $ "succeed" <+> stext name <$$> indent 4 dv
   render (RecordConstructor name value True) = do
-    let !_ = trace "RecordConstructor with True" value
     dv <- render value
     return $ "succeed" <+> "(" <> printRecordConstructorFunction name value <> ")" <$$> indent 4 dv
   render mc@(MultipleConstructors constrs) = do
@@ -144,7 +147,12 @@ renderConstructorArgs i val = do
   pure (i, "|>" <+> requiredContents <+> index)
 
 instance HasDecoder ElmValue where
-  render (ElmRef elmRefData) = pure $ stext (decoderFunction elmRefData)
+  render (ElmRef elmRefData) = do
+    topFunctionName <- get
+    let decoderFunctionName = decoderFunction elmRefData
+    if topFunctionName == decoderFunctionName
+      then pure ("(lazy (\\() -> " <> stext topFunctionName <> "))")
+      else pure $ stext decoderFunctionName
   render (ElmPrimitiveRef primitive) = renderRef primitive
   render (Values x y) = do
     dx <- render x
@@ -238,7 +246,7 @@ toElmDecoderRefWith ::
   a ->
   T.Text
 toElmDecoderRefWith options x =
-  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ()
+  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ""
 
 toElmDecoderRef ::
   (ElmType a) =>
@@ -252,7 +260,7 @@ toElmDecoderSourceWith ::
   a ->
   T.Text
 toElmDecoderSourceWith options x =
-  pprinter . fst $ evalRWS (render (toElmType x)) options ()
+  pprinter . fst $ evalRWS (render (toElmType x)) options ""
 
 toElmDecoderSource ::
   (ElmType a) =>

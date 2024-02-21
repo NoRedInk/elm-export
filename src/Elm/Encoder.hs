@@ -207,7 +207,7 @@ toElmEncoderRefWith ::
   a ->
   T.Text
 toElmEncoderRefWith options x =
-  pprinter . fst $ evalRWS (renderRef 0 (toElmType x)) options ()
+  pprinter . fst $ evalRWS (renderRef 0 (toElmType x)) options ""
 
 toElmEncoderRef ::
   (ElmType a) =>
@@ -221,7 +221,7 @@ toElmEncoderSourceWith ::
   a ->
   T.Text
 toElmEncoderSourceWith options x =
-  pprinter . fst $ evalRWS (render (toElmType x)) options ()
+  pprinter . fst $ evalRWS (render (toElmType x)) options ""
 
 toElmEncoderSource ::
   (ElmType a) =>
