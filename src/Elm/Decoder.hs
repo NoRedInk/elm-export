@@ -1,5 +1,7 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -14,6 +16,7 @@ where
 
 import Control.Monad.RWS
 import qualified Data.Text as T
+import Debug.Trace (trace)
 import Elm.Common
 import qualified Elm.Sorter as Sorter
 import Elm.Type
@@ -46,9 +49,13 @@ instance HasDecoder ElmConstructor where
   render (NamedConstructor name value) = do
     dv <- render value
     return $ dv <$$> indent 4 ("|> map" <+> stext name)
-  render (RecordConstructor name value) = do
+  render (RecordConstructor name value False) = do
     dv <- render value
     return $ "succeed" <+> stext name <$$> indent 4 dv
+  render (RecordConstructor name value True) = do
+    let !_ = trace "RecordConstructor with True" value
+    dv <- render value
+    return $ "succeed" <+> "(" <> printRecordConstructorFunction name value <> ")" <$$> indent 4 dv
   render mc@(MultipleConstructors constrs) = do
     cstrs <- mapM renderSum constrs
     pure $
@@ -76,6 +83,18 @@ instance HasDecoder ElmConstructor where
       constructorName =
         if isEnumeration mc then "string" else "field \"tag\" string"
 
+listRecordConstructors :: ElmValue -> [T.Text]
+listRecordConstructors (ElmField name _) = [name]
+listRecordConstructors (Values x y) = listRecordConstructors x ++ listRecordConstructors y
+listRecordConstructors _ = []
+
+printRecordConstructorFunction :: T.Text -> ElmValue -> Doc
+printRecordConstructorFunction name value =
+  "\\" <> hsep (stext <$> listRecordConstructors value) <+> "->" <+> stext name <+> braces (hsep $ punctuate "," (printField <$> listRecordConstructors value))
+  where
+    printField :: T.Text -> Doc
+    printField field = stext field <+> "=" <+> stext field
+
 -- | required "contents"
 requiredContents :: Doc
 requiredContents = "required" <+> dquotes "contents"
@@ -99,7 +118,7 @@ renderSum (NamedConstructor name v@(Values _ _)) = do
 renderSum (NamedConstructor name value) = do
   val <- render value
   renderSumCondition name $ "|>" <+> requiredContents <+> val
-renderSum (RecordConstructor name value) = do
+renderSum (RecordConstructor name value _) = do
   val <- render value
   renderSumCondition name val
 renderSum (MultipleConstructors constrs) =
@@ -138,6 +157,7 @@ instance HasDecoder ElmValue where
   render ElmEmpty = pure (stext "")
 
 instance HasDecoderRef ElmPrimitive where
+  renderRef :: ElmPrimitive -> RenderM Doc
   renderRef (EList (ElmPrimitive EChar)) = pure "string"
   renderRef (EList datatype) = do
     dt <- renderRef datatype

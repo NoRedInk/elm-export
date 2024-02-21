@@ -22,6 +22,12 @@ class HasEncoderRef a where
   renderRef :: Int -> a -> RenderM Doc
 
 instance HasEncoder ElmDatatype where
+  render d@(ElmDatatype name constructor@(RecordConstructor constructorName _ True)) = do
+    fnName <- renderRef 0 d
+    ctor <- render constructor
+    return $
+      (fnName <+> ":" <+> stext name <+> "->" <+> "Json.Encode.Value")
+        <$$> (fnName <+> "(" <> stext constructorName <+> "x)" <+> "=" <$$> indent 4 ctor)
   render d@(ElmDatatype name constructor) = do
     fnName <- renderRef 0 d
     ctor <- render constructor
@@ -61,7 +67,7 @@ instance HasEncoder ElmConstructor where
     return . nest 4 $
       "case x of"
         <$$> nest 4 (cs <$$> nest 4 dv <+> "y0")
-  render (RecordConstructor _ value) = do
+  render (RecordConstructor _ value _) = do
     dv <- render value
     return . nest 4 $ "Json.Encode.object" <$$> "[" <+> dv <$$> "]"
   render mc@(MultipleConstructors constrs) = do
@@ -99,7 +105,7 @@ renderSum (NamedConstructor name value) = do
   let ct = comma <+> pair (dquotes "contents") dc'
 
   return $ jsonEncodeObject cs tag ct
-renderSum (RecordConstructor name value) = do
+renderSum (RecordConstructor name value _) = do
   dv <- render value
   let cs = stext name <+> "->"
   let tag = pair (dquotes "tag") (dquotes $ stext name)
