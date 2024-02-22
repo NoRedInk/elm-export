@@ -53,7 +53,7 @@ specsToDir specs rootDir = mapM_ processSpec specs
 
 moduleSpecWith :: Options -> [Text] -> RenderM () -> Spec
 moduleSpecWith options ns m =
-  let ((), (imports, defns)) = execRWS m options ()
+  let (_, (imports, defns)) = execRWS m options ""
   in Spec
      { namespace = ns
      , declarations =

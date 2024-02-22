@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -28,6 +29,7 @@ class HasDecoderRef a where
 instance HasDecoder ElmDatatype where
   render d@(ElmDatatype name constructor) = do
     fnName <- renderRef d
+    put (displayTStrict $ renderCompact fnName)
     ctor <- render constructor
     return $
       (fnName <+> ": Decoder" <+> stext name)
@@ -36,7 +38,12 @@ instance HasDecoder ElmDatatype where
   render (CreatedInElm _) = pure $ stext ""
 
 instance HasDecoderRef ElmDatatype where
-  renderRef (ElmDatatype name _) = pure $ "decode" <> stext name
+  renderRef (ElmDatatype name _) = do
+    let decoderFunctionName = "decode" <> name
+    topFunctionName <- get
+    if topFunctionName == decoderFunctionName
+      then pure ("(lazy (\\() -> " <> stext topFunctionName <> "))")
+      else pure $ stext decoderFunctionName
   renderRef (ElmPrimitive primitive) = renderRef primitive
   renderRef (CreatedInElm elmRefData) = pure $ stext (decoderFunction elmRefData)
 
@@ -46,9 +53,12 @@ instance HasDecoder ElmConstructor where
   render (NamedConstructor name value) = do
     dv <- render value
     return $ dv <$$> indent 4 ("|> map" <+> stext name)
-  render (RecordConstructor name value) = do
+  render (RecordConstructor name value False) = do
     dv <- render value
     return $ "succeed" <+> stext name <$$> indent 4 dv
+  render (RecordConstructor name value True) = do
+    dv <- render value
+    return $ "succeed" <+> "(" <> printRecordConstructorFunction name value <> ")" <$$> indent 4 dv
   render mc@(MultipleConstructors constrs) = do
     cstrs <- mapM renderSum constrs
     pure $
@@ -76,6 +86,18 @@ instance HasDecoder ElmConstructor where
       constructorName =
         if isEnumeration mc then "string" else "field \"tag\" string"
 
+listRecordConstructors :: ElmValue -> [T.Text]
+listRecordConstructors (ElmField name _) = [name]
+listRecordConstructors (Values x y) = listRecordConstructors x ++ listRecordConstructors y
+listRecordConstructors _ = []
+
+printRecordConstructorFunction :: T.Text -> ElmValue -> Doc
+printRecordConstructorFunction name value =
+  "\\" <> hsep (stext <$> listRecordConstructors value) <+> "->" <+> stext name <+> braces (hsep $ punctuate "," (printField <$> listRecordConstructors value))
+  where
+    printField :: T.Text -> Doc
+    printField field = stext field <+> "=" <+> stext field
+
 -- | required "contents"
 requiredContents :: Doc
 requiredContents = "required" <+> dquotes "contents"
@@ -99,7 +121,7 @@ renderSum (NamedConstructor name v@(Values _ _)) = do
 renderSum (NamedConstructor name value) = do
   val <- render value
   renderSumCondition name $ "|>" <+> requiredContents <+> val
-renderSum (RecordConstructor name value) = do
+renderSum (RecordConstructor name value _) = do
   val <- render value
   renderSumCondition name val
 renderSum (MultipleConstructors constrs) =
@@ -125,7 +147,12 @@ renderConstructorArgs i val = do
   pure (i, "|>" <+> requiredContents <+> index)
 
 instance HasDecoder ElmValue where
-  render (ElmRef elmRefData) = pure $ stext (decoderFunction elmRefData)
+  render (ElmRef elmRefData) = do
+    topFunctionName <- get
+    let decoderFunctionName = decoderFunction elmRefData
+    if topFunctionName == decoderFunctionName
+      then pure ("(lazy (\\() -> " <> stext topFunctionName <> "))")
+      else pure $ stext decoderFunctionName
   render (ElmPrimitiveRef primitive) = renderRef primitive
   render (Values x y) = do
     dx <- render x
@@ -138,6 +165,7 @@ instance HasDecoder ElmValue where
   render ElmEmpty = pure (stext "")
 
 instance HasDecoderRef ElmPrimitive where
+  renderRef :: ElmPrimitive -> RenderM Doc
   renderRef (EList (ElmPrimitive EChar)) = pure "string"
   renderRef (EList datatype) = do
     dt <- renderRef datatype
@@ -218,7 +246,7 @@ toElmDecoderRefWith ::
   a ->
   T.Text
 toElmDecoderRefWith options x =
-  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ()
+  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ""
 
 toElmDecoderRef ::
   (ElmType a) =>
@@ -232,7 +260,7 @@ toElmDecoderSourceWith ::
   a ->
   T.Text
 toElmDecoderSourceWith options x =
-  pprinter . fst $ evalRWS (render (toElmType x)) options ()
+  pprinter . fst $ evalRWS (render (toElmType x)) options ""
 
 toElmDecoderSource ::
   (ElmType a) =>

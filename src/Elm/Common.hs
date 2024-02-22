@@ -51,7 +51,7 @@ l <$+$> r = l <> emptyline <$$> r
 --
 type RenderM = RWS Options (Set Text -- The set of required imports
                             , [Text] -- Generated declarations
-                            ) ()
+                            ) Text
 
 {-| Add an import to the set.
 -}
@@ -63,7 +63,7 @@ declarations.
 -}
 collectDeclaration :: RenderM Doc -> RenderM ()
 collectDeclaration =
-  mapRWS ((\(defn, (), (imports, _)) -> ((), (), (imports, [pprinter defn]))))
+  mapRWS ((\(defn, s, (imports, _)) -> ((), s, (imports, [pprinter defn]))))
 
 squarebracks :: Doc -> Doc
 squarebracks doc = "[" <+> doc <+> "]"

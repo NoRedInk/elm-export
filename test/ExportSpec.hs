@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
@@ -63,6 +64,12 @@ data Timing
   | Continue Double
   | Stop
   deriving (Generic, ElmType)
+
+data RecursiveRecord = RecursiveRecord {rec :: Maybe RecursiveRecord, otherField :: Text}
+  deriving (Generic)
+  deriving (ElmType) via TagRecord RecursiveRecord
+
+-- type RecursiveRecord = RecursiveRecord { rec : Maybe RecursiveRecord }
 
 newtype Id = Id Int
   deriving (Generic, ElmType, HasElmSorter, Aeson.ToJSON, Aeson.ToJSONKey)
@@ -250,6 +257,18 @@ toElmTypeSpec =
         defaultOptions
         (Proxy :: Proxy FavoritePlaces)
         "test/FavoritePlacesType.elm"
+    it "toElmTypeSource RecursiveRecord" $
+      shouldMatchTypeSource
+        ( unlines
+            [ "module RecursiveRecordType exposing (..)",
+              "",
+              "",
+              "%s"
+            ]
+        )
+        defaultOptions
+        (Proxy :: Proxy RecursiveRecord)
+        "test/RecursiveRecordType.elm"
     it "toElmTypeSourceWithOptions Post" $
       shouldMatchTypeSource
         ( unlines
@@ -379,6 +398,22 @@ toElmDecoderSpec =
         defaultOptions
         (Proxy :: Proxy Post)
         "test/PostDecoder.elm"
+    it "toElmDecoderSource RecursiveRecordDecoder" $
+      shouldMatchDecoderSource
+        ( unlines
+            [ "module RecursiveRecordDecoder exposing (..)",
+              "",
+              "import CommentDecoder exposing (..)",
+              "import Json.Decode exposing (..)",
+              "import Json.Decode.Pipeline exposing (..)",
+              "",
+              "",
+              "%s"
+            ]
+        )
+        defaultOptions
+        (Proxy :: Proxy RecursiveRecord)
+        "test/RecursiveRecordDecoder.elm"
     it "toElmDecoderSourceWithOptions Post" $
       shouldMatchDecoderSource
         ( unlines
@@ -622,6 +657,20 @@ toElmEncoderSpec =
         defaultOptions
         (Proxy :: Proxy Post)
         "test/PostEncoder.elm"
+    it "toElmEncoderSource RecursiveRecord" $
+      shouldMatchEncoderSource
+        ( unlines
+            [ "module RecursiveRecordEncoder exposing (..)",
+              "",
+              "import Json.Encode",
+              "",
+              "",
+              "%s"
+            ]
+        )
+        defaultOptions
+        (Proxy :: Proxy RecursiveRecord)
+        "test/RecursiveRecordEncoder.elm"
     it "toElmEncoderSourceWithOptions Comment" $
       shouldMatchEncoderSource
         ( unlines

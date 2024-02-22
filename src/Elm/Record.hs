@@ -30,7 +30,7 @@ class HasTypeRef a where
   renderRef :: a -> RenderM Doc
 
 instance HasType ElmDatatype where
-  render d@(ElmDatatype _ constructor@(RecordConstructor _ _)) = do
+  render d@(ElmDatatype _ constructor@(RecordConstructor _ _ False)) = do
     name <- renderRef d
     ctor <- render constructor
     return . nest 4 $ "type alias" <+> name <+> "=" <$$> ctor
@@ -47,9 +47,12 @@ instance HasTypeRef ElmDatatype where
   renderRef (CreatedInElm elmRefData) = pure (stext (typeName elmRefData))
 
 instance HasType ElmConstructor where
-  render (RecordConstructor _ value) = do
+  render (RecordConstructor _ value False) = do
     dv <- renderRecord value
     return $ "{" <+> dv <$$> "}"
+  render (RecordConstructor name value True) = do
+    dv <- renderRecord value
+    return $ stext name <$$> indent 4 ("{" <+> dv <$$> "}")
   render (NamedConstructor constructorName value) = do
     dv <- render value
     return $ stext constructorName <+> dv
@@ -137,7 +140,7 @@ toElmTypeRefWith ::
   a ->
   T.Text
 toElmTypeRefWith options x =
-  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ()
+  pprinter . fst $ evalRWS (renderRef (toElmType x)) options ""
 
 toElmTypeRef ::
   (ElmType a) =>
@@ -151,7 +154,7 @@ toElmTypeSourceWith ::
   a ->
   T.Text
 toElmTypeSourceWith options x =
-  pprinter . fst $ evalRWS (render (toElmType x)) options ()
+  pprinter . fst $ evalRWS (render (toElmType x)) options ""
 
 toElmSorterSource :: (ElmType a, HasElmSorter a) => Proxy a -> T.Text
 toElmSorterSource p =

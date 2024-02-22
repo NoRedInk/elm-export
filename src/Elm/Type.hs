@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -70,6 +71,7 @@ data ElmConstructor
   | RecordConstructor
       Text
       ElmValue
+      Bool
   | MultipleConstructors [ElmConstructor]
   deriving (Show, Eq)
 
@@ -127,7 +129,7 @@ instance
   where
   genericToElmConstructor constructor =
     if conIsRecord constructor
-      then RecordConstructor name (genericToElmValue (unM1 constructor))
+      then RecordConstructor name (genericToElmValue (unM1 constructor)) False
       else NamedConstructor name (genericToElmValue (unM1 constructor))
     where
       name = pack $ conName constructor
@@ -381,6 +383,17 @@ instance ElmType Char where
 
 instance ElmType Bool where
   toElmType _ = ElmPrimitive EBool
+
+newtype TagRecord a = TagRecord a
+
+instance (Generic a, GenericElmDatatype (Rep a)) => ElmType (TagRecord a) where
+  toElmType _ =
+    case genericToElmDatatype (from (undefined :: a)) of
+      ElmPrimitive prim -> ElmPrimitive prim
+      CreatedInElm fromElm' -> CreatedInElm fromElm'
+      ElmDatatype n (RecordConstructor name value _) ->
+        ElmDatatype n (RecordConstructor name value True)
+      ElmDatatype name constructor -> ElmDatatype name constructor
 
 -- | Whether a set of constructors is an enumeration, i.e. whether they lack
 -- values. data A = A | B | C would be simple data A = A Int | B | C would not
