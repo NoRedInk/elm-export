@@ -8,6 +8,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoGeneralizedNewtypeDeriving #-}
 
 module Elm.Sorter (Sorter, mkRecordSorter, mkCustom, HasElmSorter (..), render) where
@@ -15,7 +17,8 @@ module Elm.Sorter (Sorter, mkRecordSorter, mkCustom, HasElmSorter (..), render) 
 import Data.Generics.Product.Fields (HasField')
 import Data.Int (Int32, Int64)
 import Data.Proxy
-import Data.Text (Text, pack)
+import Data.Text (pack)
+import qualified Data.Text as T
 import Elm.Common (letIn)
 import GHC.Generics
 import GHC.TypeLits
@@ -24,9 +27,9 @@ import Text.PrettyPrint.Leijen.Text hiding ((<$>))
 data Sorter
   = Alphabetical
   | Increasing
-  | ByField Text Sorter
-  | ByNewtype Text Sorter
-  | Custom Text
+  | ByField T.Text Sorter
+  | ByNewtype T.Text Sorter
+  | Custom T.Text
   deriving (Eq, Show)
 
 render :: Sorter -> Doc
@@ -58,6 +61,17 @@ class HasElmSorter a where
 
 class GenericElmSorter f where
   genericElmSorter :: f a -> Sorter
+
+instance
+  {-# OVERLAPPABLE #-}
+  ( TypeError
+      ( Text "ElmSorter only has default instances for newtypes."
+          :$$: Text "Perhaps you should use `mkRecordSorter` or `mkCustom` instead?"
+      )
+  ) =>
+  GenericElmSorter a
+  where
+  genericElmSorter = undefined
 
 instance
   (HasElmSorter interior, KnownSymbol consName) =>
@@ -137,7 +151,7 @@ instance HasElmSorter Int64 where
 instance HasElmSorter Double where
   elmSorter _ = Increasing
 
-instance HasElmSorter Text where
+instance HasElmSorter T.Text where
   elmSorter _ = Alphabetical
 
 instance HasElmSorter String where
@@ -146,5 +160,5 @@ instance HasElmSorter String where
 mkRecordSorter :: forall (field :: Symbol) record type_. (HasField' field record type_, KnownSymbol field, HasElmSorter type_) => Proxy record -> Sorter
 mkRecordSorter _ = ByField (pack $ symbolVal (Proxy :: Proxy field)) (elmSorter (Proxy :: Proxy type_))
 
-mkCustom :: Text -> Sorter
+mkCustom :: T.Text -> Sorter
 mkCustom = Custom
