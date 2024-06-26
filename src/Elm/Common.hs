@@ -11,11 +11,19 @@ import Formatting hiding (text)
 import Text.PrettyPrint.Leijen.Text hiding ((<$>))
 
 data Options = Options
-  { fieldLabelModifier :: Text -> Text
+  { fieldLabelModifier :: Text -> Text,
+    -- | When True, decoders are tolerant of missing list fields and
+    -- | will default them to an empty list []. This is helpful in supporting
+    -- | third-party APIs that remove empty fields from the response.
+    optionalListFields :: Bool
   }
 
 defaultOptions :: Options
-defaultOptions = Options {fieldLabelModifier = id}
+defaultOptions =
+  Options
+    { fieldLabelModifier = id,
+      optionalListFields = False
+    }
 
 cr :: Format r r
 cr = now "\n"
