@@ -15,14 +15,19 @@ data Options = Options
     -- | When True, decoders are tolerant of missing list fields and
     -- | will default them to an empty list []. This is helpful in supporting
     -- | third-party APIs that remove empty fields from the response.
-    optionalListFields :: Bool
+    optionalListFields :: Bool,
+    -- | When True, decoders are tolerant of missing Maybe fields and
+    -- | will default them to Nothing. This is helpful in supporting
+    -- | third-party APIs that remove empty fields from the response.
+    optionalMaybeFields :: Bool
   }
 
 defaultOptions :: Options
 defaultOptions =
   Options
     { fieldLabelModifier = id,
-      optionalListFields = False
+      optionalListFields = False,
+      optionalMaybeFields = False
     }
 
 cr :: Format r r

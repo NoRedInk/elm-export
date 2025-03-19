@@ -161,14 +161,21 @@ instance HasDecoder ElmValue where
   render (ElmField name value) = do
     fieldModifier <- asks fieldLabelModifier
     optionalListFields' <- asks optionalListFields
+    optionalMaybeFields' <- asks optionalMaybeFields
     dv <- render value
     let isList = case value of
           (ElmPrimitiveRef (EList value'))
             | value' /= (ElmPrimitive EChar) -> True
           _ -> False
+    let isMaybe = case value of
+          ElmPrimitiveRef (EMaybe value') -> True
+          _ -> False
     if isList && optionalListFields'
       then return $ "|> optional" <+> dquotes (stext (fieldModifier name)) <+> dv <+> "[]"
-      else return $ "|> required" <+> dquotes (stext (fieldModifier name)) <+> dv
+      else
+        if isMaybe && optionalMaybeFields'
+          then return $ "|> optional" <+> dquotes (stext (fieldModifier name)) <+> dv <+> "Nothing"
+          else return $ "|> required" <+> dquotes (stext (fieldModifier name)) <+> dv
   render ElmEmpty = pure (stext "")
 
 instance HasDecoderRef ElmPrimitive where

@@ -428,7 +428,7 @@ toElmDecoderSpec =
               "%s"
             ]
         )
-        (defaultOptions {fieldLabelModifier = withPrefix "post", optionalListFields = True})
+        (defaultOptions {fieldLabelModifier = withPrefix "post", optionalListFields = True, optionalMaybeFields = True})
         (Proxy :: Proxy Post)
         "test/PostDecoderWithOptions.elm"
     it "toElmDecoderSource Position" $
