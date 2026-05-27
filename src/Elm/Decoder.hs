@@ -168,7 +168,7 @@ instance HasDecoder ElmValue where
             | value' /= (ElmPrimitive EChar) -> True
           _ -> False
     let isMaybe = case value of
-          ElmPrimitiveRef (EMaybe value') -> True
+          ElmPrimitiveRef (EMaybe _) -> True
           _ -> False
     if isList && optionalListFields'
       then return $ "|> optional" <+> dquotes (stext (fieldModifier name)) <+> dv <+> "[]"
